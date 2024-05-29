@@ -117,7 +117,7 @@ CREATE TABLE `transportasi_publik` (
 
 CREATE TABLE `user` (
   `id_user` int(11) NOT NULL,
-  `role` varchar(50) DEFAULT NULL,
+  `role` enum('pengguna','admin') DEFAULT NULL,
   `username` varchar(50) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL
