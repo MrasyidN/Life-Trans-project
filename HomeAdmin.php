@@ -1,5 +1,6 @@
 <?php
-
+    include "koneksi.php";
+    session_start();
 ?>
 
 <!DOCTYPE html>
@@ -73,8 +74,218 @@
             </div>
         </div>
     </nav>
+    
 
-    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <div class="container">
+        <div class="card mt-5">
+            <div class="card-header bg-primary text-white">
+                <h3>akun yang ada di database</h3>
+            </div>
+            <div class="card-body">
+                    <h3>data akun</h3>
+                <table class="table table-bordered table-striped table-hover">
+                    <tr>
+                        <th>No</th>
+                        <th>Role</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Email</th>
+                        <th>Aksi</th>
+                    </tr>
+
+                    <?php
+                    
+                    $no= 1;
+                    $tampil = mysqli_query($koneksi, "SELECT * FROM user ORDER BY id_user ASC");
+                    while($data = mysqli_fetch_array($tampil)) :
+                    ?>
+
+                    <tr>
+                        <td><?= $no++ ?></td>
+                        <td><?= $data['role']?></td>
+                        <td><?= $data['username']?></td>
+                        <td><?= $data['password']?></td>
+                        <td><?= $data['email']?></td>
+                        <td>
+                            <a href="" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalUbah<?= $no ?>">ubah</a>
+                            <a href="" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalHapus<?= $no ?>"">hapus</a>
+                        </td>
+                    </tr>
+
+                     <!-- awal Modal ubah -->
+                    <div class="modal fade" id="modalUbah<?= $no ?>" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="staticBackdropLabel">Form Akun</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form method="POST" action="Akun.php">
+                            <input type="hidden" name="id_user" value="<?= $data['id_user']?>">
+                        <div class="modal-body">
+                            
+
+                            <div class= "mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select" name="trole">
+                                <option value=value="<?=$data['role']?>"><?=$data['role']?></option>
+                                <option value="admin">admin</option>
+                                <option value="pengguna">pengguna</option>
+                            </select>
+                            </div>
+
+                            <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" name="tusername" value="<?=$data['username']?>">
+                            </div>
+                            
+                            <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="text" class="form-control" name="tpassword" value="<?=$data['password']?>">
+                            </div>
+                            
+                            <div class= "mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="text" class="form-control" name="temail" value="<?=$data['email']?>">
+                            </div>
+                            
+                        </div>
+                            <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary" name="bubah">Ubah</button>    
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Keluar</button>
+                                
+                            </div>
+                        </form>
+                        </div>
+                    </div>
+                    </div>
+                    <!-- akhir Modal ubah-->
+
+
+                    <!-- Awal Modal hapus -->
+                    <div class="modal fade" id="modalHapus<?= $no ?>" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="staticBackdropLabel">Konfirmasi Hapus Akun</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form method="POST" action="Akun.php">
+                                    <input type="hidden" name="id_user" value="<?= $data['id_user']?>">
+                                    <div class="modal-body">
+                                        <h5 class="text-center">Apa anda yakin akan menghapus data ini?</h5>
+                                        <span class="text-danger "><?=$data['username']?></span>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary" name="bhapus">Hapus</button>
+                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Keluar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Akhir Modal hapus -->
+
+
+
+
+
+
+                    <?php endwhile; ?>
+                </table>
+
+
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                Tambah akun
+                </button>
+
+                <!-- awal Modal -->
+                <div class="modal fade" id="modalTambah" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Form Akun</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="Akun.php">
+                    <div class="modal-body">
+                        
+
+                        <div class= "mb-3">
+                        <label class="form-label">Role</label>
+                          <select class="form-select" name="trole">
+                            <option value="admin">admin</option>
+                            <option value="pengguna">pengguna</option>
+                          </select>
+                        </div>
+
+                        <div class="mb-3">
+                          <label class="form-label">Username</label>
+                          <input type="text" class="form-control" name="tusername">
+                        </div>
+                        
+                        <div class="mb-3">
+                          <label class="form-label">Password</label>
+                          <input type="text" class="form-control" name="tpassword">
+                        </div>
+                        
+                        <div class= "mb-3">
+                          <label class="form-label">Email</label>
+                          <input type="text" class="form-control" name="temail">
+                        </div>
+                        
+                    </div>
+                        <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" name="bsimpan">Simpan</button>    
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Keluar</button>
+                            
+                        </div>
+                    </form>
+                    </div>
+                </div>
+                </div>
+                 <!-- akhir Modal -->
+            </div>
+
+        </div>
+
+    </div>
+
+    <!--kritik dan saran -->
+    <div class="container">
+        <div class="card mt-5">
+        <div class="card-header bg-primary text-white">
+                <h3>kritik dan saran pengguna</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-striped table-hover">
+                    <tr>
+                        <th>no</th>
+                        <th>username</th>
+                        <th>ulasan</th>
+                    </tr>
+
+                    <?php
+                    $no = 1;
+                    $ulasan = mysqli_query($koneksi, "SELECT user.id_user, user.username, review_rating.ulasan FROM user RIGHT JOIN review_rating ON user.id_user = review_rating.id_review ");
+                    while($data = mysqli_fetch_array($ulasan)) :
+                    ?>
+
+                    <tr>
+                        <td><?= $no++ ?></td>
+                        <td><?= $data['username']?></td>
+                        <td><?= $data['ulasan']?></td>
+                    </tr>
+
+                    <?php endwhile; ?>
+                </table>
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
