@@ -1,22 +1,72 @@
 <?php
-    include "../../koneksi/koneksi.php";
+include "../../koneksi/koneksi.php";
 
-    if(isset($_POST['register'])){
-        $verify = mysqli_query($koneksi, "select email from user where email = '$_POST[email]'");
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
+    // Sanitasi dan ambil input
+    $username       = htmlspecialchars(trim($_POST['username']));
+    $email          = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
+    $password       = $_POST['password']; // tidak disanitasi karena akan di-hash
+    $nama_lengkap   = htmlspecialchars(trim($_POST['nama_lengkap']));
+    $tanggal_lahir  = $_POST['tanggal_lahir'];
+    $no_hp          = htmlspecialchars(trim($_POST['no_hp']));
+    $alamat         = htmlspecialchars(trim($_POST['alamat']));
 
-        if(mysqli_num_rows($verify) != 0){
-            echo "<script>alert('This email is already taken. Please try another email');</script>";
-            echo '<script>window.location.href = "../register/Register.php";</script>';
-        }else{
-          $simpan = mysqli_query($koneksi, "insert into user (role, username, password, email, nama_lengkap, tanggal_lahir, no_hp, alamat) values ('pengguna', '$_POST[username]', '$_POST[password]', '$_POST[email]', '$_POST[nama_lengkap]', '$_POST[tanggal_lahir]', '$_POST[no_hp]', '$_POST[alamat]')");
-            echo "<script>alert('Berhasil Mendaftar');</script>";
-            echo '<script>window.location.href = "../login/Login.php";</script>';
-        }
-        
+    // Validasi email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo "<script>alert('Format email tidak valid.'); window.location.href = '../register/Register.php';</script>";
+        exit;
     }
+
+    // Validasi password
+    if (strlen($password) < 8 || 
+        !preg_match('/[A-Z]/', $password) || 
+        !preg_match('/[a-z]/', $password) || 
+        !preg_match('/[0-9]/', $password) || 
+        !preg_match('/[\W]/', $password)) {
+        echo "<script>alert('Password harus minimal 8 karakter dan mengandung huruf besar, huruf kecil, angka, dan simbol.'); window.location.href = '../register/Register.php';</script>";
+        exit;
+    }
+
+    // Validasi nomor HP
+    if (!preg_match('/^[0-9]{10,15}$/', $no_hp)) {
+        echo "<script>alert('Nomor HP harus berupa angka 10–15 digit.'); window.location.href = '../register/Register.php';</script>";
+        exit;
+    }
+
+    // Validasi tanggal lahir
+    $date = DateTime::createFromFormat('Y-m-d', $tanggal_lahir);
+    $now = new DateTime();
+    if (!$date || $date->format('Y-m-d') !== $tanggal_lahir || $date > $now) {
+        echo "<script>alert('Tanggal lahir tidak valid atau berada di masa depan.'); window.location.href = '../register/Register.php';</script>";
+        exit;
+    }
+
+    // Cek apakah email sudah digunakan
+    $stmt = $koneksi->prepare("SELECT email FROM user WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+        echo "<script>alert('Email sudah digunakan. Silakan gunakan email lain.'); window.location.href = '../register/Register.php';</script>";
+    } else {
+        // Hash password
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+        // Simpan ke database
+        $stmt = $koneksi->prepare("INSERT INTO user (role, username, password, email, nama_lengkap, tanggal_lahir, no_hp, alamat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $role = 'pengguna';
+        $stmt->bind_param("ssssssss", $role, $username, $hashed_password, $email, $nama_lengkap, $tanggal_lahir, $no_hp, $alamat);
+
+        if ($stmt->execute()) {
+            echo "<script>alert('Registrasi berhasil!'); window.location.href = '../login/Login.php';</script>";
+        } else {
+            echo "<script>alert('Terjadi kesalahan saat menyimpan data.'); window.location.href = '../register/Register.php';</script>";
+        }
+    }
+    $stmt->close();
+}
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
