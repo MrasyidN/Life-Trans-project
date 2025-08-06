@@ -3,39 +3,39 @@ include "../../koneksi/koneksi.php";
 session_start();
 
 if (isset($_POST['login'])) {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
 
-    $username = mysqli_real_escape_string($koneksi, $username);
-    $password = mysqli_real_escape_string($koneksi, $password);
-    
-    $query = mysqli_query($koneksi, "SELECT * FROM user WHERE username = '$username' AND password = '$password'");
-    $data = mysqli_fetch_array($query);
-    
-    if ($data) {
+    // Validasi sederhana
+    if ($username === "" || $password === "") {
+        echo "<script>alert('Username dan Password tidak boleh kosong');window.location.href='../login/login.php';</script>";
+        exit;
+    }
+
+    // Gunakan prepared statement
+    $stmt = $koneksi->prepare("SELECT * FROM user WHERE username = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = $result->fetch_assoc();
+
+    if ($data && password_verify($password, $data['password'])) {
         $_SESSION['id_user'] = $data['id_user'];
         $_SESSION['username'] = $data['username'];
         $_SESSION['role'] = $data['role'];
-        if ($data['role'] == 'admin') {
-            echo "<script>
-                alert('Login berhasil');
-                document.location='../../components-admin/homeadmin/homeadmin.php';
-            </script>";
+
+        if ($data['role'] === 'admin') {
+            echo "<script>alert('Login berhasil'); window.location.href='../../components-admin/homeadmin/homeadmin.php';</script>";
         } else {
-            echo "<script>
-                alert('Login berhasil');
-                document.location='../home/home.php';
-            </script>";
+            echo "<script>alert('Login berhasil'); window.location.href='../home/home.php';</script>";
         }
     } else {
-        echo "<script>
-            alert('Login gagal');
-            document.location='../login/login.php';
-        </script>";
+        echo "<script>alert('Username atau password salah'); window.location.href='../login/login.php';</script>";
     }
+
+    $stmt->close();
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -98,15 +98,15 @@ if (isset($_POST['login'])) {
 <body>
     <div class="login-container">
         <h2>Login</h2>
-        <form method="POST" action="">
+        <form method="POST" action="" autocomplete="off" novalidate>
             <div class="mb-3">
                 <label for="username" class="form-label">Username atau Email</label>
-                <input type="text" id="username" name="username" class="form-control" required>
+                <input type="text" id="username" name="username" class="form-control" required minlength="3">
             </div>
             
             <div class="mb-3 password-container">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" id="password" name="password" class="form-control" required>
+                <input type="password" id="password" name="password" class="form-control" required minlength="4">
                 <i class="eye fa fa-eye password-icon" onclick="togglePassword()"></i>
             </div>
             
